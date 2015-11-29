@@ -6257,8 +6257,8 @@ c
 c
       tmp0 = 0.d0
       tmp1 = 0.d0
-      if (en(1).ne.0) tmp0 = (en(2) + en(3) - en(1)) / abs(en(1))
-      if (am(1).ne.0) tmp1 = (am(2) + am(3) - am(1)) / abs(am(1))
+      if (en(1).ne.0) tmp0 = abs((en(2) + en(3) - en(1)) / en(1))
+      if (am(1).ne.0) tmp1 = abs((am(2) + am(3) - am(1)) / am(1))
 c
       if (opt(3).eq.1) then
         call mio_jd2y (time,year,month,t1)
@@ -6274,8 +6274,8 @@ c
 
 c A.S. Need to write the energy here to a .txt file and you should be good to go. Fortran 77 write to file.
 10    open (565,file='eo.txt',status='unknown',access='append',err=10)
-        ASinput = '(f14.1,1x,1p1e12.5)'
-        write (565,ASinput) time - tstart, tmp0
+        ASinput = '(f14.1,1x,1p1e12.5,1x,1p1e12.5)'
+        write (565,ASinput) time - tstart, tmp0, en(3)
         close (565)
 c A.S. Need to write the energy here to a .txt file and you should be good to go. Fortran 77 write to file.
 
