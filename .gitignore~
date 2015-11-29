@@ -1,1 +1,4 @@
 analysis/*
+*.tmp
+*.dmp
+*.out

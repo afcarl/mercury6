@@ -8,23 +8,27 @@ import re
 import matplotlib.pyplot as plt
 import sys
 
-def h2b(cube, m0, iteration, N_bodies, mtiny):  #heliocentric to barycentric
-    #day2yr = 58.1313429643    #converts AU/day -> AU/(yr/2pi)
-    day2yr = 1/0.01720242383
-    com = np.zeros(7) #m,x,y,z,vx,vy,vz
+def get_mass(cube,m0,N_bodies):
     m = np.zeros(N_bodies+1)
     m[0] = m0
-    com[0] = m[0]       #sun's mass
-    for i in xrange(1,N_bodies+1):
-        m[i] = cube[i-1][iteration][1]
-        if m[i] > mtiny:
-            com[1] += m[i]*cube[i-1][iteration][2] #x
-            com[2] += m[i]*cube[i-1][iteration][3] #y
-            com[3] += m[i]*cube[i-1][iteration][4] #z
-            com[4] += m[i]*cube[i-1][iteration][5]*day2yr #vx
-            com[5] += m[i]*cube[i-1][iteration][6]*day2yr #vy
-            com[6] += m[i]*cube[i-1][iteration][7]*day2yr #vz
-            com[0] += m[i]
+    for i in xrange(0,N_bodies):
+        m[i+1] = cube[i][0][1]
+    return m
+
+def h2b(cube, m, iteration, N_bodies, mtiny):  #heliocentric to barycentric
+    #day2AU = 58.1313429643    #converts AU/day -> AU/(yr/2pi)
+    day2AU = 1/0.01720242383
+    com = np.zeros(7) #m,x,y,z,vx,vy,vz
+    com[0] = m[0]
+    for i in xrange(0,N_bodies):
+        if m[i+1] > mtiny:
+            com[1] += m[i+1]*cube[i][iteration][2] #x
+            com[2] += m[i+1]*cube[i][iteration][3] #y
+            com[3] += m[i+1]*cube[i][iteration][4] #z
+            com[4] += m[i+1]*cube[i][iteration][5]*day2AU #vx
+            com[5] += m[i+1]*cube[i][iteration][6]*day2AU #vy
+            com[6] += m[i+1]*cube[i][iteration][7]*day2AU #vz
+            com[0] += m[i+1]
     x = np.zeros(N_bodies+1)
     y = np.zeros(N_bodies+1)
     z = np.zeros(N_bodies+1)
@@ -37,19 +41,19 @@ def h2b(cube, m0, iteration, N_bodies, mtiny):  #heliocentric to barycentric
     vx[0] = -com[4]/com[0]
     vy[0] = -com[5]/com[0]
     vz[0] = -com[6]/com[0]
-    for i in xrange(1,N_bodies+1):
-        x[i] = cube[i-1][iteration][2] + x[0]
-        y[i] = cube[i-1][iteration][3] + y[0]
-        z[i] = cube[i-1][iteration][4] + z[0]
-        vx[i] = cube[i-1][iteration][5]*day2yr + vx[0]
-        vy[i] = cube[i-1][iteration][6]*day2yr + vy[0]
-        vz[i] = cube[i-1][iteration][7]*day2yr + vz[0]
-    return m, x, y, z, vx, vy, vz
+    for i in xrange(0,N_bodies):
+        x[i+1] = cube[i][iteration][2] + x[0]
+        y[i+1] = cube[i][iteration][3] + y[0]
+        z[i+1] = cube[i][iteration][4] + z[0]
+        vx[i+1] = cube[i][iteration][5]*day2AU + vx[0]
+        vy[i+1] = cube[i][iteration][6]*day2AU + vy[0]
+        vz[i+1] = cube[i][iteration][7]*day2AU + vz[0]
+    return x, y, z, vx, vy, vz
 
 def cal_energy(m,x,y,z,vx,vy,vz,N_bodies,mtiny):
     K = 0
     U = 0
-    G = 1   #G=1 units - AU^3/(Msun * (yr/2pi)^2)
+    G = 1   #G=1 units
     for i in xrange(0,N_bodies+1):
         K += 0.5*m[i]*(vx[i]*vx[i] + vy[i]*vy[i] + vz[i]*vz[i])     #KE body
         if m[i] > mtiny:                    #ignore forces between planetesimals
@@ -69,6 +73,13 @@ files = glob.glob(dir+'*.aei')
 files = sorted(files, key=natural_key)
 N_bodies = len(files)
 
+default_mtiny = '1e-07'
+input = raw_input('Enter Mtiny value (default, Msun=1, mtiny=1e-07): ')
+if not input:
+    mtiny = float(default_mtiny)
+else:
+    mtiny = float(input)
+
 default_m0 = '1'
 input = raw_input('Enter Suns mass (default Msun=1): ')
 if not input:
@@ -76,34 +87,46 @@ if not input:
 else:
     m0 = float(input)
 
-default_mtiny = '1e-07'
-input = raw_input('Enter mtiny threshold value (default, mtiny=1e-07): ')
-if not input:
-    mtiny = float(default_mtiny)
-else:
-    mtiny = float(input)
-
-cube=np.genfromtxt(files[0],delimiter=None,skiprows = 4, dtype=float)
-nr, nc = cube.shape
-cube = np.reshape(cube, (1,nr,nc))
+try:
+    energy_prototype = int(sys.argv[3]) #default array to make cube framework
+except:
+    energy_prototype = 0
 
 #read in data for each body
-for i in xrange(1,N_bodies):
-    data=np.genfromtxt(files[i],delimiter=None,skiprows = 4, dtype=float)
-    data = np.reshape(data, (1,nr,nc))
+print 'get data cube'
+cube=np.genfromtxt(files[energy_prototype],delimiter=None,dtype=float,skiprows=4) #file 0 is the sun which is empty
+nr, nc = cube.shape
+cube = np.reshape(cube, (1,nr,nc))
+for i in xrange(0,N_bodies):
+    if i==energy_prototype:
+        continue
+    data=np.genfromtxt(files[i],delimiter=None,dtype=float,skiprows=4)
+    data=data[0:nr]
+    try:
+        data = np.reshape(data, (1,nr,nc))
+    except:
+        print 'Error, different array dimensions (probably from particle merging).'
+        print 'Prototype dimenstions =',(nr,nc)
+        print 'current data shape =',data.shape
+        print 'Retry movie with movie_prototype =',i
+        exit(0)
     cube = np.concatenate((cube,data),axis=0)
 
 N_bods,N_output,N_cols = cube.shape
 
+#get masses of each body
+print 'get masses'
+m = get_mass(cube,m0,N_bodies)
+
 #calc E of system at time 0
 dE = np.zeros(N_output)
 time = np.zeros(N_output)
-m,x,y,z,vx,vy,vz = h2b(cube,m0,0,N_bodies,mtiny)
+x,y,z,vx,vy,vz = h2b(cube,m,0,N_bodies,mtiny)
 E0 = cal_energy(m,x,y,z,vx,vy,vz,N_bodies,mtiny)
 print 'calculating energy'
 increment = 0.1*N_output
 for i in xrange(1,N_output):
-    m,x,y,z,vx,vy,vz = h2b(cube,m0,i,N_bodies,mtiny)
+    x,y,z,vx,vy,vz = h2b(cube,m,i,N_bodies,mtiny)
     E = cal_energy(m,x,y,z,vx,vy,vz,N_bodies,mtiny)
     dE[i] = np.fabs((E - E0)/E0)
     time[i] = cube[0][i][0]
@@ -114,5 +137,5 @@ for i in xrange(1,N_output):
 plt.plot(time, dE, 'o')
 plt.yscale('log')
 plt.xscale('log')
-plt.savefig(dir+'Energy.png')
+plt.savefig(dir+'Energy_fromoutput.png')
 plt.show()

@@ -6,8 +6,9 @@ echo $'\n'
 echo "Delete all temporary files"
 rm *.dmp *.clo *.out *.tmp *.aei
 
-echo "Delete compiled files? (yes/no)"
-read need_delete
+echo "Deleting compiled files."
+need_delete='yes'
+#read need_delete
 
 if [ $need_delete = 'yes' ]; then
   echo "Compiled files are deleted"
