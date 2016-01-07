@@ -18,7 +18,7 @@ def natural_key(string_):
     return [int(s) if s.isdigit() else s for s in re.split(r'(\d+)', string_)]
 
 dir = sys.argv[1]
-outputdir = 'output_movie/'
+outputdir = 'movie_output/'
 files = glob.glob(dir+'*.aei')
 files = sorted(files, key=natural_key)
 N_bodies = len(files)
@@ -56,7 +56,7 @@ for i in xrange(1,N_bodies):
     cube = np.concatenate((cube,data),axis=0)
 
 #limits for plots = (x,y,z/2)
-limit = 20
+limit = 5
 
 print 'deleting any existing .png images in output_movie folder'
 call("rm output_movie/*.png",shell=True)

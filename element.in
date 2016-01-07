@@ -6,14 +6,14 @@
 ) List the input files, one per line
  xv.out
 )---------------------------------------------------------------------
- type of elements (central body, barycentric, Jacobi) = Cen
+ type of elements (central body, barycentric, Jacobi) = Central
 ) minimum interval between outputs (days) = 365.2d1
- minimum interval between outputs (days) = 100d1
+ minimum interval between outputs (days) = 1d1
  express time in days or years = years
  express time relative to integration start time = yes
 )---------------------------------------------------------------------
 ) Output format? (e.g. a8.4 => semi-major axis with 8 digits & 4 dec. places)
- m16.12 x16.12 y16.12 z16.12 u16.14 v16.14 w16.14
+ m20.16 x20.16 y20.16 z20.16 u20.16 v20.16 w20.16
 ) p13e l13.5e a8.5 e8.6 i8.4 g8.4 n8.4 m13e 
 )---------------------------------------------------------------------
 ) Which bodies do you want? (List one per line or leave blank for all bodies)

@@ -9,55 +9,54 @@ import matplotlib.pyplot as plt
 import sys
 
 def get_mass(cube,m0,N_bodies):
-    m = np.zeros(N_bodies+1)
+    m = np.zeros(N_bodies)
     m[0] = m0
-    for i in xrange(0,N_bodies):
-        m[i+1] = cube[i][0][1]
+    for i in xrange(1,N_bodies):
+        m[i] = cube[i-1][0][1]
     return m
 
 def h2b(cube, m, iteration, N_bodies, mtiny):  #heliocentric to barycentric
-    #day2AU = 58.1313429643    #converts AU/day -> AU/(yr/2pi)
-    day2AU = 1/0.01720242383
     com = np.zeros(7) #m,x,y,z,vx,vy,vz
     com[0] = m[0]
-    for i in xrange(0,N_bodies):
-        if m[i+1] > mtiny:
-            com[1] += m[i+1]*cube[i][iteration][2] #x
-            com[2] += m[i+1]*cube[i][iteration][3] #y
-            com[3] += m[i+1]*cube[i][iteration][4] #z
-            com[4] += m[i+1]*cube[i][iteration][5]*day2AU #vx
-            com[5] += m[i+1]*cube[i][iteration][6]*day2AU #vy
-            com[6] += m[i+1]*cube[i][iteration][7]*day2AU #vz
-            com[0] += m[i+1]
-    x = np.zeros(N_bodies+1)
-    y = np.zeros(N_bodies+1)
-    z = np.zeros(N_bodies+1)
-    vx = np.zeros(N_bodies+1)
-    vy = np.zeros(N_bodies+1)
-    vz = np.zeros(N_bodies+1)
+    for i in xrange(1,N_bodies):
+        if m[i] > mtiny:
+            com[1] += m[i]*cube[i-1][iteration][2] #x
+            com[2] += m[i]*cube[i-1][iteration][3] #y
+            com[3] += m[i]*cube[i-1][iteration][4] #z
+            com[4] += m[i]*cube[i-1][iteration][5] #vx
+            com[5] += m[i]*cube[i-1][iteration][6] #vy
+            com[6] += m[i]*cube[i-1][iteration][7] #vz
+            com[0] += m[i]
+    x = np.zeros(N_bodies)
+    y = np.zeros(N_bodies)
+    z = np.zeros(N_bodies)
+    vx = np.zeros(N_bodies)
+    vy = np.zeros(N_bodies)
+    vz = np.zeros(N_bodies)
     x[0] = -com[1]/com[0]
     y[0] = -com[2]/com[0]
     z[0] = -com[3]/com[0]
     vx[0] = -com[4]/com[0]
     vy[0] = -com[5]/com[0]
     vz[0] = -com[6]/com[0]
-    for i in xrange(0,N_bodies):
-        x[i+1] = cube[i][iteration][2] + x[0]
-        y[i+1] = cube[i][iteration][3] + y[0]
-        z[i+1] = cube[i][iteration][4] + z[0]
-        vx[i+1] = cube[i][iteration][5]*day2AU + vx[0]
-        vy[i+1] = cube[i][iteration][6]*day2AU + vy[0]
-        vz[i+1] = cube[i][iteration][7]*day2AU + vz[0]
+    for i in xrange(1,N_bodies):
+        x[i] = cube[i-1][iteration][2] + x[0]
+        y[i] = cube[i-1][iteration][3] + y[0]
+        z[i] = cube[i-1][iteration][4] + z[0]
+        vx[i] = cube[i-1][iteration][5] + vx[0]
+        vy[i] = cube[i-1][iteration][6] + vy[0]
+        vz[i] = cube[i-1][iteration][7] + vz[0]
     return x, y, z, vx, vy, vz
 
 def cal_energy(m,x,y,z,vx,vy,vz,N_bodies,mtiny):
+    day2AU2 = (1/0.01720242383)**2    #(converts AU/day -> AU/(yr/2pi) - for velocities)**2
     K = 0
     U = 0
     G = 1   #G=1 units
-    for i in xrange(0,N_bodies+1):
-        K += 0.5*m[i]*(vx[i]*vx[i] + vy[i]*vy[i] + vz[i]*vz[i])     #KE body
+    for i in xrange(0,N_bodies):
+        K += 0.5*m[i]*(vx[i]*vx[i] + vy[i]*vy[i] + vz[i]*vz[i])*day2AU2     #KE body
         if m[i] > mtiny:                    #ignore forces between planetesimals
-            for j in xrange(i+1,N_bodies+1):
+            for j in xrange(i+1,N_bodies):
                 dx = x[i] - x[j]
                 dy = y[i] - y[j]
                 dz = z[i] - z[j]
@@ -71,10 +70,10 @@ def natural_key(string_):
 dir = sys.argv[1]
 files = glob.glob(dir+'*.aei')
 files = sorted(files, key=natural_key)
-N_bodies = len(files)
+N_bodies = len(files) + 1 #+1 for the sun
 
 default_mtiny = '1e-07'
-input = raw_input('Enter Mtiny value (default, Msun=1, mtiny=1e-07): ')
+input = raw_input('Enter Mtiny value (default mtiny=1e-07): ')
 if not input:
     mtiny = float(default_mtiny)
 else:
@@ -97,7 +96,7 @@ print 'get data cube'
 cube=np.genfromtxt(files[energy_prototype],delimiter=None,dtype=float,skiprows=4) #file 0 is the sun which is empty
 nr, nc = cube.shape
 cube = np.reshape(cube, (1,nr,nc))
-for i in xrange(0,N_bodies):
+for i in xrange(0,N_bodies-1):
     if i==energy_prototype:
         continue
     data=np.genfromtxt(files[i],delimiter=None,dtype=float,skiprows=4)
