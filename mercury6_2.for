@@ -1535,6 +1535,7 @@ c
       return
       end
 c
+c A.S. This is the algorithm that checks for collisions
 c%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 c
 c    MCE_STAT.FOR    (ErikSoft   1 March 2001)
@@ -6274,7 +6275,7 @@ c
 
 c A.S. Need to write the energy here to a .txt file and you should be good to go. Fortran 77 write to file.
 10    open (565,file='eo.txt',status='unknown',access='append',err=10)
-        ASinput = '(f14.1,1x,1p1e12.5,1x,1p1e12.7)'
+        ASinput = '(f14.1,1x,1p1e12.5,1x,1p1e14.7)'
         write (565,ASinput) time - tstart, tmp0, en(3)
         close (565)
 c A.S. Need to write the energy here to a .txt file and you should be good to go. Fortran 77 write to file.

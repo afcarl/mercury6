@@ -110,7 +110,7 @@ else:
 
 #find number of outputs
 f=open(dir+'eo.txt')
-eoffset_array = f.readlines()
+eoffset_array = f.readlines()   #make sure the values are correctly corresponding.
 N_output = len(eoffset_array)
 
 #calc E of system at time 0
