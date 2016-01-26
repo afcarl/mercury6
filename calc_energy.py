@@ -13,7 +13,7 @@ dE = np.zeros(nr)
 time = np.zeros(nr)
 for i in xrange(0,nr):
     dE[i] = abs(data[i][1])
-    time[i] = data[i][0]
+    time[i] = data[i][0]*0.01721420632  #constant is 2pi/365
 
 
 plt.plot(time,dE,'o')

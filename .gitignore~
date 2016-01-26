@@ -2,3 +2,4 @@ analysis/*
 *.tmp
 *.dmp
 *.out
+eo.txt

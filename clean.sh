@@ -4,7 +4,7 @@
 echo $'\n'
 
 echo "Delete all temporary files"
-rm *.dmp *.clo *.out *.tmp *.aei
+rm *.dmp *.clo *.out *.tmp *.aei eo.txt elapsed_time.txt
 
 echo "Deleting compiled files."
 need_delete='yes'

@@ -2,4 +2,4 @@ analysis/*
 *.tmp
 *.dmp
 *.out
-eo.txt
+input_files/*
