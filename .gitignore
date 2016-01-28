@@ -3,3 +3,4 @@ analysis/*
 *.dmp
 *.out
 input_files/*
+output/*
