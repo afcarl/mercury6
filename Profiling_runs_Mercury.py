@@ -12,6 +12,7 @@ def execute(dir):
     os.chdir(dir)
     call('sh clean.sh',shell=True)
     call('gfortran -o mercury6 mercury6_2.for',shell=True)
+    call('touch eo.txt',shell=True)
     fos = open('elapsed_time.txt','a')
     fos.write('start time = '+str(time.time())+'\n')
     call('./mercury6')
