@@ -599,8 +599,9 @@ c A.S. initialize variables
       xyzcounter = 0
       numdt = 20
       n_output = tstop/dtout/h0
+      if (n_output.gt.100000) n_output = 100000
       t_log_output = (tstop + 1)**(1./(n_output - 1.));
-      t_output = 100*h0;
+      t_output = h0;
 c
 
 c------------------------------------------------------------------------------

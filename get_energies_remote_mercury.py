@@ -37,7 +37,7 @@ length = len(d)
 for i in xrange(0,length):
     dir = d[i].split("\n")
     exist = os.path.isdir('input_files/'+dir[0])
-    if exist == 'False':
+    if exist == 0:
         call('mkdir input_files/'+dir[0], shell=True)
     for j in xrange(0,len(get_files)):
         localpath='input_files/'+dir[0]+'/'+get_files[j]
