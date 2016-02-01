@@ -124,6 +124,7 @@ c
       external mco_b2h,mco_h2b,mco_h2mvs,mco_mvs2h,mco_iden
 c
       data opt/0,1,1,2,0,1,0,0/
+
 c
 c------------------------------------------------------------------------------
 c
@@ -132,6 +133,7 @@ c Get initial conditions and integration parameters
      %  en,am,cefac,ndump,nfun,nbod,nbig,m,xh,vh,s,rho,rceh,stat,id,
      %  epoch,ngf,opt,opflag,ngflag,outfile,dumpfile,lmem,mem)
 c
+
 c If this is a new integration, integrate all the objects to a common epoch.
       if (opflag.eq.-2) then
   20    open (23,file=outfile(3),status='old',access='append',err=20)
@@ -183,7 +185,7 @@ c Do a final data dump
       call mio_dump (time,tstart,tstop,dtout,algor,h0,tol,jcen,rcen,
      %  rmax,en,am,cefac,ndump,nfun,nbod,nbig,m,xh,vh,s,rho,rceh,stat,
      %  id,ngf,epoch,opt,opflag,dumpfile,mem,lmem)
-c
+
 c Calculate and record the overall change in energy and ang. momentum
   50  open  (23, file=outfile(3), status='old', access='append',
      %  err=50)
@@ -294,6 +296,7 @@ c Local
       real*8 ixvclo(6,CMAX),jxvclo(6,CMAX)
       external mfo_all,onestep
 c
+
 c------------------------------------------------------------------------------
 c
 c Initialize variables. DTFLAG = 0 implies first ever call to ONESTEP
@@ -323,6 +326,9 @@ c Set up time of next output, times of previous dump, log and periodic effect
       tdump = time
       tfun  = time
       tlog  = time
+c
+
+
 c
 c------------------------------------------------------------------------------
 c
@@ -518,6 +524,8 @@ c
 c The programme uses the transformation routines COORD and BCOORD to change
 c to and from the internal coordinates, respectively.
 c
+c A.S. ISSUE: BCOORD and COORD are routines that I can't seem to find...
+c
 c------------------------------------------------------------------------------
 c
       subroutine mal_hcon (time,tstart,tstop,dtout,algor,h0,tol,jcen,
@@ -547,6 +555,15 @@ c Local
       real*8 ixvclo(6,CMAX),jxvclo(6,CMAX),a(NMAX)
       external onestep,coord,bcoord
 c
+c A.S. vars
+      real*8 toutxyz,xyzcounter,numdt,n_output,t_log_output
+      real*8 t_output
+      real*8 temp,tmp2(4,NMAX),ASencalc
+      integer xyzoutput,iflag
+      character*8 tempout
+      character*50 ASinput, ASfilename
+c
+
 c------------------------------------------------------------------------------
 c
 c Initialize variables. DTFLAG = 0/2: first call ever/normal
@@ -576,6 +593,16 @@ c
 c Convert to internal coordinates and velocities
       call coord (time,jcen,nbod,nbig,h0,m,xh,vh,x,v,ngf,ngflag,opt)
 c
+c A.S. initialize variables
+      xyzoutput = 0
+      toutxyz = 0
+      xyzcounter = 0
+      numdt = 20
+      n_output = tstop/dtout/h0
+      t_log_output = (tstop + 1)**(1./(n_output - 1.));
+      t_output = 100*h0;
+c
+
 c------------------------------------------------------------------------------
 c
 c  MAIN  LOOP  STARTS  HERE
@@ -741,6 +768,35 @@ c Convert to heliocentric coords and write a progress report to the log file
         tlog = time
       end if
 c
+c A.S. outputting xyz
+c      if (time.gt.toutxyz - 0.01*h0 .and. xyzoutput.eq.1) then
+c        xyzcounter = xyzcounter + 1
+c        write (tempout,'(I4.4)') xyzcounter ! converting integer to string using a 'internal file'
+c        ASfilename='xyz_outputs/swifter'//trim(tempout)//'.txt'
+c        call mco_h2b(time,jcen,nbod,nbig,temp,m,xh,vh,x,v,tmp2,iflag,itmp)
+c10      open (565,file=ASfilename,status="new",action="write",err=10)
+c        ASinput = '(f14.1,1x,I3,1x,f18.16,1x,f18.16,1x,f18.16)'
+c        do j=1,nbod
+c          write (565,ASinput) time, i, x(1,j), x(2,j), x(3,j)
+c        end do
+c        close(565)
+c        toutxyz = toutxyz + numdt*h0
+c      end if
+c
+c A.S. log output energy
+      if ((time - tstart).gt.t_output) then
+        t_output = (time - tstart)*t_log_output
+        call mxx_en (jcen,nbod,nbig,m,xh,vh,s,en(2),am(2))
+        ASencalc = 0.d0
+        if (en(1).ne.0) ASencalc = abs((en(2) + en(3) - en(1)) / en(1))
+10      open (565,file='eo.txt',status='old',access='append',err=10)
+        ASinput = '(f14.1,1x,1p1e12.5,1x,1p1e14.7)'
+        write (565,ASinput) time - tstart, ASencalc, en(3)
+        close (565)
+      end if
+c
+
+
 c------------------------------------------------------------------------------
 c
 c  CHECK  FOR  EJECTIONS  AND  DO  OTHER  PERIODIC  EFFECTS
@@ -6241,7 +6297,7 @@ c
 c Local
       integer year, month
       real*8 tmp0, tmp1, t1
-      character*38 flog, ASinput
+      character*38 flog
       character*6 tstring
 c
 c------------------------------------------------------------------------------
@@ -6274,10 +6330,10 @@ c
       end if
 
 c A.S. Need to write the energy here to a .txt file and you should be good to go. Fortran 77 write to file.
-10    open (565,file='eo.txt',status='unknown',access='append',err=10)
-        ASinput = '(f14.1,1x,1p1e12.5,1x,1p1e14.7)'
-        write (565,ASinput) time - tstart, tmp0, en(3)
-        close (565)
+c10    open (565,file='eo.txt',status='unknown',access='append',err=10)
+c        ASinput = '(f14.1,1x,1p1e12.5,1x,1p1e14.7)'
+c        write (565,ASinput) time - tstart, tmp0, en(3)
+c        close (565)
 c A.S. Need to write the energy here to a .txt file and you should be good to go. Fortran 77 write to file.
 
 c

@@ -5,6 +5,7 @@ import time
 call("sh clean.sh",shell=True)
 call("sh compile.sh",shell=True)
 call("rm eo.txt",shell=True)
+call("touch eo.txt",shell=True)
 
 start_time = time.time()
 

@@ -5,6 +5,7 @@ import subprocess
 import os
 import numpy as np
 import matplotlib.pyplot as plt
+from subprocess import call
 
 hostname = 'rein005.utsc.utoronto.ca'
 password = 'ZAIfkUIK'
@@ -17,6 +18,8 @@ erase = raw_input("Erase local directories (default = 0)?: ")
 if not erase:
     erase = default_erase
 erase = int(erase)
+if erase == 1: #erase every single directory
+    call('rm -rf input_files/*', shell=True)
 
 default_calcE = 0
 calcE = raw_input("Calculate Energies (0=no, 1=yes, default=no)?: ")
@@ -33,13 +36,9 @@ length = len(d)
 
 for i in xrange(0,length):
     dir = d[i].split("\n")
-    if erase == 1: #making directories
-        call('rm -rf input_files/'+dir[0], shell=True)
+    exist = os.path.isdir('input_files/'+dir[0])
+    if exist == 'False':
         call('mkdir input_files/'+dir[0], shell=True)
-    else:
-        exist = os.path.isdir('input_files/'+dir[0])
-        if exist == 'False':
-            call('mkdir input_files/'+dir[0], shell=True)
     for j in xrange(0,len(get_files)):
         localpath='input_files/'+dir[0]+'/'+get_files[j]
         remotepath='../../../data_local/silburt/mercury6/input_files/'+dir[0]+'/'+get_files[j]

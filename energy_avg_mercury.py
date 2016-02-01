@@ -21,6 +21,7 @@ N_planetesimals = raw_input("Enter # planetesimals for runs you wish to average:
 files = [x[0] for x in os.walk('input_files/')]
 files = files[1:]
 N_files = 0
+n_it = 10e10
 
 print 'reading in data'
 data = []
@@ -31,13 +32,15 @@ for f in files:
         try:
             ff = open(f+'/eo.txt', 'r')
             lines = ff.readlines()
+            length = len(lines)
+            if length < n_it:   #need to find array with shortest length
+                n_it = length
             data.append(lines)
             N_files += 1
             print 'iteration complete'
         except:
             print 'couldnt read in data file '+f+'/eo.txt'
 
-n_it = len(data[0])
 E = np.zeros(shape=(N_files,n_it))
 Eavg = np.zeros(n_it)
 time = np.zeros(n_it)
@@ -45,10 +48,17 @@ vals_for_med = np.zeros(N_files)
 
 print 'calculating avg energy'
 for i in xrange(0,n_it):
-    for j in range(0,N_files):
+    split = data[0][i].split()
+    vals_for_med[0] = float(split[1])
+    E[0][i] = vals_for_med[0]
+    t=float(split[0])
+    for j in range(1,N_files):
         split = data[j][i].split()
-        vals_for_med[j] = float(split[1])
-        E[j][i] = vals_for_med[j]
+        if float(split[0]) == t:
+            vals_for_med[j] = float(split[1])
+            E[j][i] = vals_for_med[j]
+        else:
+            print 'problem, times dont match'
     Eavg[i] = np.median(vals_for_med)
     time[i] = float(split[0])*0.01721420632
 
