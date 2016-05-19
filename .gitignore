@@ -4,3 +4,4 @@ analysis/*
 *.out
 input_files/*
 output/*
+saved_input_files/*

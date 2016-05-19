@@ -1276,6 +1276,7 @@ c
       return
       end
 c
+c A.S. This is where the collision merging actually happens.
 c%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 c
 c      MCE_MERG.FOR    (ErikSoft   2 October 2000)
@@ -3422,6 +3423,7 @@ c------------------------------------------------------------------------------
 c
       end
 c
+c A.S. This is an important part
 c%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 c
 c      MDT_HY.FOR    (ErikSoft   2 March 2001)
@@ -3531,6 +3533,7 @@ c
 c Check whether any object separations were < R_CRIT whilst advancing H_K
       call mce_snif (h0,2,nbod,nbig,x0,v0,x,v,rcrit,ce,nce,ice,jce)
 c
+c A.S. Important part
 c If objects had close encounters, advance H_K using Bulirsch-Stoer instead
       if (nce.gt.0) then
         do j = 2, nbod

@@ -11,7 +11,7 @@ hostname = 'rein005.utsc.utoronto.ca'
 password = 'ZAIfkUIK'
 username = 'silburt'
 
-get_files = ['eo.txt','elapsed_time.txt']
+get_files = ['eo.txt','elapsed_time.txt','ce.out','message.in','close.in']
 
 default_erase = 0
 erase = raw_input("Erase local directories (default = 0)?: ")
@@ -26,6 +26,12 @@ calcE = raw_input("Calculate Energies (0=no, 1=yes, default=no)?: ")
 if not calcE:
     calcE = default_calcE
 calcE = int(calcE)
+
+default_xvout = 0
+xvout = raw_input("Extract Close Encounters (0=no, 1=yes, default=no)?: ")
+if not xvout:
+    xvout = default_xvout
+xvout = int(xvout)
 
 ssh = paramiko.SSHClient()
 ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -65,5 +71,14 @@ for i in xrange(0,length):
         output = 'input_files/'+dir[0]+'/Energy.png'
         plt.savefig(output)
         plt.clf()
+    if xvout == 1:
+        exist = os.path.isdir('input_files/'+dir[0]+'/CE')
+        if exist == 0:
+            call('mkdir input_files/'+dir[0]+'/CE', shell=True)
+        call('cp close6 input_files/'+dir[0]+'/.', shell=True)
+        os.chdir('input_files/'+dir[0]+'/')
+        call('./close6',shell=True)
+        call('mv *.clo CE/.',shell=True)
+        os.chdir('../../')
     print 'completed iteration '+str(i)+' of '+str(length)
 
