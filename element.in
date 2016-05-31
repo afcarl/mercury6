@@ -8,7 +8,7 @@
 )---------------------------------------------------------------------
  type of elements (central body, barycentric, Jacobi) = Central
 ) minimum interval between outputs (days) = 365.2d1
- minimum interval between outputs (days) = 1d1
+ minimum interval between outputs (days) = 1d3
  express time in days or years = years
  express time relative to integration start time = yes
 )---------------------------------------------------------------------
