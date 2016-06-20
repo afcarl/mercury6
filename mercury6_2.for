@@ -128,6 +128,10 @@ c
 c
 c------------------------------------------------------------------------------
 c
+c A.S. timing
+      real*4 timer(2), total_time
+      real etime
+
 c Get initial conditions and integration parameters
       call mio_in (time,tstart,tstop,dtout,algor,h0,tol,rmax,rcen,jcen,
      %  en,am,cefac,ndump,nfun,nbod,nbig,m,xh,vh,s,rho,rceh,stat,id,
@@ -200,6 +204,12 @@ c
       write (23,232) mem(61)(1:lmem(61)), abs(am(3) / am(1))
       close (23)
       write (*,'(a)') mem(57)(1:lmem(57))
+
+c A.S. timing
+      total_time = etime ( timer )
+  10  open (565,file='ET.txt',status="new",action="write",err=10)
+      write ( 565, * ) 'Elapsed time = ', total_time
+      close (565)
 c
 c------------------------------------------------------------------------------
 c

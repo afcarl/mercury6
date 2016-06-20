@@ -1,7 +1,6 @@
 #A.S. This clean's the directory, recompiles the directory, and then runs mercury, keeping time in the process.
 import multiprocessing as mp
 from subprocess import call
-import time
 import os
 import sys
 
@@ -14,13 +13,9 @@ def execute(dir):
     os.chdir(dir)
     call('sh clean.sh',shell=True)
     call('gfortran -o mercury6 mercury6_2.for',shell=True)
-    call('rm eo.txt elapsed_time.txt',shell=True)
+    call('rm eo.txt ET.txt',shell=True)
     call('touch eo.txt',shell=True)
-    fos = open('elapsed_time.txt','a')
-    fos.write('start time = '+str(time.time())+'\n')
     call('./mercury6')
-    fos = open('elapsed_time.txt','a')
-    fos.write('finish time = '+str(time.time()))
 
 if __name__== '__main__':
     files = [x[0] for x in os.walk('input_files/')]
