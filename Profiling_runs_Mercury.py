@@ -15,9 +15,9 @@ def execute(dir):
     call('sh clean.sh',shell=True)
     call('gfortran -o mercury6 mercury6_2.for',shell=True)
     call('gfortran -o element6 element6.for',shell=True)
-    #call('rm eo.txt ET.txt',shell=True)
-    #call('touch eo.txt',shell=True)
-    call('./mercury6 > output.txt')
+    call('rm eo.txt ET.txt',shell=True)
+    call('touch eo.txt',shell=True)
+    call('./mercury6 > eo.txt',shell=True)
 
 if __name__== '__main__':
     files = [x[0] for x in os.walk('input_files/')]
@@ -25,6 +25,7 @@ if __name__== '__main__':
     length = len(files)
     pool = mp.Pool(processes=length)
     args=[files[i] for i in xrange(0,length)]
+    print args
     pool.map(execute, args)
     pool.close()
     pool.join()
