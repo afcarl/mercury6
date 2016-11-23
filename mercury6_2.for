@@ -128,7 +128,7 @@ c
 c
 c------------------------------------------------------------------------------
 c
-c A.S. timing
+c A.S. variables
       real*4 timer(2), total_time
       real etime
 
@@ -305,7 +305,6 @@ c Local
       real*8 dclo(CMAX),tclo(CMAX),epoch(NMAX)
       real*8 ixvclo(6,CMAX),jxvclo(6,CMAX)
       external mfo_all,onestep
-c
 
 c------------------------------------------------------------------------------
 c
@@ -476,11 +475,13 @@ c Do the data dump
         tdump = time
       end if
 c
+c A.S. make it logarithmic outputs, log constant matching my rebound outputs
 c Write a progress report to the log file
-      if (abs(time-tlog).ge.abs(dtdump).and.opflag.ge.0) then
+c      if (abs(time-tlog).ge.abs(dtdump).and.opflag.ge.0) then
+      if (tlog.le.time.and.opflag.ge.0) then
         call mxx_en (jcen,nbod,nbig,m,xh,vh,s,en(2),am(2))
-        call mio_log (time,tstart,en,am,opt,mem,lmem)
-        tlog = time
+        call mio_log (time,tstart,en,am,opt,mem,lmem,nbod)
+        tlog = time*1.000184
       end if
 c
 c------------------------------------------------------------------------------
@@ -771,13 +772,16 @@ c Convert to heliocentric coords and do the data dump
         tdump = time
       end if
 c
+c A.S. convert to log time - log constant matching rebound outputs right now
 c Convert to heliocentric coords and write a progress report to the log file
-      if (abs(time-tlog).ge.abs(dtdump).and.opflag.ge.0) then
+c      if (abs(time-tlog).ge.abs(dtdump).and.opflag.ge.0) then
+      if (tlog.le.time.and.opflag.ge.0) then
         call bcoord (time,jcen,nbod,nbig,h0,m,x,v,xh,vh,ngf,ngflag,opt)
         call mxx_en (jcen,nbod,nbig,m,xh,vh,s,en(2),am(2))
-        call mio_log (time,tstart,en,am,opt,mem,lmem)
-        tlog = time
+        call mio_log (time,tstart,en,am,opt,mem,lmem,nbod)
+        tlog = time*1.000184
       end if
+
 c
 c A.S. outputting xyz
 c      if (time.gt.toutxyz - 0.01*h0 .and. xyzoutput.eq.1) then
@@ -6285,6 +6289,7 @@ c
       return
       end
 c
+c A.S. This is where things are output on the screen
 c%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 c
 c      MIO_LOG.FOR    (ErikSoft   25 February 2001)
@@ -6298,13 +6303,13 @@ c Mercury interactively).
 c
 c------------------------------------------------------------------------------
 c
-      subroutine mio_log (time,tstart,en,am,opt,mem,lmem)
+      subroutine mio_log (time,tstart,en,am,opt,mem,lmem,nbod)
 c
       implicit none
       include 'mercury.inc'
 c
 c Input/Output
-      integer lmem(NMESS), opt(8)
+      integer lmem(NMESS), opt(8), nbod
       real*8 time, tstart, en(3), am(3)
       character*80 mem(NMESS)
 c
@@ -6318,12 +6323,12 @@ c------------------------------------------------------------------------------
 c
       if (opt(3).eq.0.or.opt(3).eq.2) then
         tstring = mem(1)
-        flog = '(1x,a,f14.1,a,2(a,1p1e12.5))'
+        flog='(1x,a,f14.1,a,2(a,1p1e12.5),3x,i5)'
       else if (opt(3).eq.1) then
-        flog = '(1x,a,i10,1x,i2,1x,f4.1,2(a,1p1e12.5))'
+        flog='(a,i9,1x,i2,f4.1,2(a,1p1e12.5),3x,i5)'
       else
         tstring = mem(2)
-        flog = '(1x,a,f14.3,a,2(a,1p1e12.5))'
+        flog='(1x,a,f14.3,a,2(a,1p1e12.5),3x,i5)'
       end if
 c
       tmp0 = 0.d0
@@ -6334,13 +6339,15 @@ c
       if (opt(3).eq.1) then
         call mio_jd2y (time,year,month,t1)
         write (*,flog) mem(64)(1:lmem(64)), year, month, t1,
-     %    mem(65)(1:lmem(65)), tmp0,mem(66)(1:lmem(66)), tmp1
+     %    mem(65)(1:lmem(65)), tmp0,mem(66)(1:lmem(66)), tmp1,
+     %    nbod
       else
         if (opt(3).eq.0) t1 = time
         if (opt(3).eq.2) t1 = time - tstart
         if (opt(3).eq.3) t1 = (time - tstart) / 365.25d0
         write (*,flog) mem(63)(1:lmem(63)), t1, tstring,
-     %    mem(65)(1:lmem(65)), tmp0, mem(66)(1:lmem(66)), tmp1
+     %    mem(65)(1:lmem(65)), tmp0, mem(66)(1:lmem(66)), tmp1,
+     %    nbod
       end if
 
 c A.S. Need to write the energy here to a .txt file and you should be good to go. Fortran 77 write to file.
