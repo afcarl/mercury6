@@ -798,17 +798,18 @@ c        close(565)
 c        toutxyz = toutxyz + numdt*h0
 c      end if
 c
+
 c A.S. log output energy
-      if ((time - tstart).gt.t_output) then
-        t_output = (time - tstart)*t_log_output
-        call mxx_en (jcen,nbod,nbig,m,xh,vh,s,en(2),am(2))
-        ASencalc = 0.d0
-        if (en(1).ne.0) ASencalc = abs((en(2) + en(3) - en(1)) / en(1))
-10      open (565,file='eo.txt',status='old',access='append',err=10)
-        ASinput = '(f14.1,1x,1p1e12.5,1x,1p1e14.7)'
-        write (565,ASinput) time - tstart, ASencalc, en(3)
-        close (565)
-      end if
+c      if ((time - tstart).gt.t_output) then
+c        t_output = (time - tstart)*t_log_output
+c        call mxx_en (jcen,nbod,nbig,m,xh,vh,s,en(2),am(2))
+c        ASencalc = 0.d0
+c        if (en(1).ne.0) ASencalc = abs((en(2) + en(3) - en(1)) / en(1))
+c10      open (565,file='eo.txt',status='old',access='append',err=10)
+c        ASinput = '(f14.1,1x,1p1e12.5,1x,1p1e14.7)'
+c        write (565,ASinput) time - tstart, ASencalc, en(3)
+c        close (565)
+c      end if
 c
 
 
@@ -3252,6 +3253,7 @@ c------------------------------------------------------------------------------
 c
       end
 c
+c A.S. Burlish-Stoer routine
 c%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 c
 c      MDT_BS2.FOR    (ErikSoft   2 March 2001)

@@ -14,7 +14,7 @@ def execute(dir):
     os.chdir(dir)
     call('sh clean.sh',shell=True)
     call('gfortran -o mercury6 mercury6_2.for',shell=True)
-    call('gfortran -o element6 element6.for',shell=True)
+#    call('gfortran -o element6 element6.for',shell=True)
     call('rm eo.txt ET.txt',shell=True)
     call('touch eo.txt',shell=True)
     call('./mercury6 > eo.txt',shell=True)
