@@ -3,6 +3,7 @@ import multiprocessing as mp
 from subprocess import call
 import os
 import sys
+import time
 
 def execute(dir):
     call('cp mercury6_2.for '+dir+'/.',shell=True)
@@ -17,14 +18,18 @@ def execute(dir):
 #    call('gfortran -o element6 element6.for',shell=True)
     call('rm eo.txt ET.txt',shell=True)
     call('touch eo.txt',shell=True)
-    call('touch ET.txt',shell=True)
+    start = time.time()
+    #call('./mercury6', shell=True)
     call('./mercury6 > eo.txt',shell=True)
+    f = open('ET.txt','w')
+    f.write('Elapsed time is %f seconds.'%(time.time() - start))
+    f.close()
 
 if __name__== '__main__':
     files = [x[0] for x in os.walk('input_files/')][1:]
-    length = len(files)
-    pool = mp.Pool(processes=length)
-    args=[files[i] for i in xrange(0,length)]
+    N_procs = 1           #might need to be changed in the future. 
+    pool = mp.Pool(processes=N_procs)
+    args=[files[i] for i in xrange(0,len(files))]
     print args
     pool.map(execute, args)
     pool.close()

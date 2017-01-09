@@ -129,8 +129,8 @@ c
 c------------------------------------------------------------------------------
 c
 c A.S. variables
-      real*4 timer(2), total_time
-      real etime
+c      real*4 timer(2), total_time
+c      real etime
 
 c Get initial conditions and integration parameters
       call mio_in (time,tstart,tstop,dtout,algor,h0,tol,rmax,rcen,jcen,
@@ -206,10 +206,10 @@ c
       write (*,'(a)') mem(57)(1:lmem(57))
 
 c A.S. timing
-      total_time = etime ( timer )
-  10  open (565,file='ET.txt',status="new",action="write",err=10)
-      write ( 565, * ) 'Elapsed time = ', total_time
-      close (565)
+c      total_time = etime ( timer )
+c  10  open (565,file='ET.txt',status="new",action="write",err=10)
+c      write ( 565, * ) 'Elapsed time = ', total_time
+c      close (565)
 c
 c------------------------------------------------------------------------------
 c
@@ -476,7 +476,7 @@ c Do the data dump
       end if
 c
 c A.S. make it logarithmic outputs, log constant matching my rebound outputs
-c Write a progress report to the log file
+c Write a progress report to the log file - comment line below
 c      if (abs(time-tlog).ge.abs(dtdump).and.opflag.ge.0) then
       if (tlog.le.time.and.opflag.ge.0) then
         call mxx_en (jcen,nbod,nbig,m,xh,vh,s,en(2),am(2))
@@ -605,14 +605,14 @@ c Convert to internal coordinates and velocities
       call coord (time,jcen,nbod,nbig,h0,m,xh,vh,x,v,ngf,ngflag,opt)
 c
 c A.S. initialize variables
-      xyzoutput = 0
-      toutxyz = 0
-      xyzcounter = 0
-      numdt = 20
-      n_output = tstop/dtout/h0
-      if (n_output.gt.100000) n_output = 100000
-      t_log_output = (tstop + 1)**(1./(n_output - 1.));
-      t_output = h0;
+c      xyzoutput = 0
+c      toutxyz = 0
+c      xyzcounter = 0
+c      numdt = 20
+c      n_output = tstop/dtout/h0
+c      if (n_output.gt.100000) n_output = 100000
+c      t_log_output = (tstop + 1)**(1./(n_output - 1.));
+c      t_output = h0;
 c
 
 c------------------------------------------------------------------------------
