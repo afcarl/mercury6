@@ -19,8 +19,7 @@ def execute(dir):
     call('rm eo.txt ET.txt',shell=True)
     call('touch eo.txt',shell=True)
     start = time.time()
-    #call('./mercury6', shell=True)
-    call('./mercury6 > eo.txt',shell=True)
+    call('./mercury6 | tee -a eo.txt',shell=True) #copies output to file but output shows on screen still
     f = open('ET.txt','w')
     f.write('Elapsed time is %f seconds.'%(time.time() - start))
     f.close()
