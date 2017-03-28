@@ -23,6 +23,8 @@ def execute(dir):
     f = open('ET.txt','w')
     f.write('Elapsed time is %f seconds.'%(time.time() - start))
     f.close()
+    call('rm ce.out *.dmp *.tmp',shell=True)                  #saves space
+    os.chdir('../..')
 
 if __name__== '__main__':
     files = [x[0] for x in os.walk('input_files/')][1:]

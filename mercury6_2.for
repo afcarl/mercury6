@@ -124,14 +124,20 @@ c
       external mco_b2h,mco_h2b,mco_h2mvs,mco_mvs2h,mco_iden
 c
       data opt/0,1,1,2,0,1,0,0/
+
 c
 c------------------------------------------------------------------------------
 c
+c A.S. variables
+c      real*4 timer(2), total_time
+c      real etime
+
 c Get initial conditions and integration parameters
       call mio_in (time,tstart,tstop,dtout,algor,h0,tol,rmax,rcen,jcen,
      %  en,am,cefac,ndump,nfun,nbod,nbig,m,xh,vh,s,rho,rceh,stat,id,
      %  epoch,ngf,opt,opflag,ngflag,outfile,dumpfile,lmem,mem)
 c
+
 c If this is a new integration, integrate all the objects to a common epoch.
       if (opflag.eq.-2) then
   20    open (23,file=outfile(3),status='old',access='append',err=20)
@@ -183,7 +189,7 @@ c Do a final data dump
       call mio_dump (time,tstart,tstop,dtout,algor,h0,tol,jcen,rcen,
      %  rmax,en,am,cefac,ndump,nfun,nbod,nbig,m,xh,vh,s,rho,rceh,stat,
      %  id,ngf,epoch,opt,opflag,dumpfile,mem,lmem)
-c
+
 c Calculate and record the overall change in energy and ang. momentum
   50  open  (23, file=outfile(3), status='old', access='append',
      %  err=50)
@@ -198,6 +204,12 @@ c
       write (23,232) mem(61)(1:lmem(61)), abs(am(3) / am(1))
       close (23)
       write (*,'(a)') mem(57)(1:lmem(57))
+
+c A.S. timing
+c      total_time = etime ( timer )
+c  10  open (565,file='ET.txt',status="new",action="write",err=10)
+c      write ( 565, * ) 'Elapsed time = ', total_time
+c      close (565)
 c
 c------------------------------------------------------------------------------
 c
@@ -293,7 +305,7 @@ c Local
       real*8 dclo(CMAX),tclo(CMAX),epoch(NMAX)
       real*8 ixvclo(6,CMAX),jxvclo(6,CMAX)
       external mfo_all,onestep
-c
+
 c------------------------------------------------------------------------------
 c
 c Initialize variables. DTFLAG = 0 implies first ever call to ONESTEP
@@ -323,6 +335,9 @@ c Set up time of next output, times of previous dump, log and periodic effect
       tdump = time
       tfun  = time
       tlog  = time
+c
+
+
 c
 c------------------------------------------------------------------------------
 c
@@ -460,13 +475,14 @@ c Do the data dump
         tdump = time
       end if
 c
-c Write a progress report to the log file
-      if (abs(time-tlog).ge.abs(dtdump).and.opflag.ge.0) then
+c A.S. make it logarithmic outputs, log constant matching my rebound outputs
+c Write a progress report to the log file - comment line below
+c      if (abs(time-tlog).ge.abs(dtdump).and.opflag.ge.0) then
+      if (tlog.le.time.and.opflag.ge.0) then
         call mxx_en (jcen,nbod,nbig,m,xh,vh,s,en(2),am(2))
-        call mio_log (time,tstart,en,am,opt,mem,lmem)
-        tlog = time
+        call mio_log (time,tstart,en,am,opt,mem,lmem,nbod)
+        tlog = time*1.003691
       end if
-
 c
 c------------------------------------------------------------------------------
 c
@@ -519,6 +535,8 @@ c
 c The programme uses the transformation routines COORD and BCOORD to change
 c to and from the internal coordinates, respectively.
 c
+c A.S. ISSUE: BCOORD and COORD are routines that I can't seem to find...
+c
 c------------------------------------------------------------------------------
 c
       subroutine mal_hcon (time,tstart,tstop,dtout,algor,h0,tol,jcen,
@@ -548,6 +566,15 @@ c Local
       real*8 ixvclo(6,CMAX),jxvclo(6,CMAX),a(NMAX)
       external onestep,coord,bcoord
 c
+c A.S. vars
+      real*8 toutxyz,xyzcounter,numdt,n_output,t_log_output
+      real*8 t_output
+      real*8 temp,tmp2(4,NMAX),ASencalc
+      integer xyzoutput,iflag
+      character*8 tempout
+      character*50 ASinput, ASfilename
+c
+
 c------------------------------------------------------------------------------
 c
 c Initialize variables. DTFLAG = 0/2: first call ever/normal
@@ -577,6 +604,17 @@ c
 c Convert to internal coordinates and velocities
       call coord (time,jcen,nbod,nbig,h0,m,xh,vh,x,v,ngf,ngflag,opt)
 c
+c A.S. initialize variables
+c      xyzoutput = 0
+c      toutxyz = 0
+c      xyzcounter = 0
+c      numdt = 20
+c      n_output = tstop/dtout/h0
+c      if (n_output.gt.100000) n_output = 100000
+c      t_log_output = (tstop + 1)**(1./(n_output - 1.));
+c      t_output = h0;
+c
+
 c------------------------------------------------------------------------------
 c
 c  MAIN  LOOP  STARTS  HERE
@@ -734,23 +772,47 @@ c Convert to heliocentric coords and do the data dump
         tdump = time
       end if
 c
+c A.S. convert to log time - log constant matching rebound outputs right now
 c Convert to heliocentric coords and write a progress report to the log file
-      if (abs(time-tlog).ge.abs(dtdump).and.opflag.ge.0) then
+c      if (abs(time-tlog).ge.abs(dtdump).and.opflag.ge.0) then
+      if (tlog.le.time.and.opflag.ge.0) then
         call bcoord (time,jcen,nbod,nbig,h0,m,x,v,xh,vh,ngf,ngflag,opt)
         call mxx_en (jcen,nbod,nbig,m,xh,vh,s,en(2),am(2))
-        call mio_log (time,tstart,en,am,opt,mem,lmem)
-        tlog = time
-      end if
-
-c A.S. Convert to heliocentric coords and write a progress report to the log file
-      if (abs(tstop-time).le.4*h0.and.opflag.ge.0) then
-        call bcoord (time,jcen,nbod,nbig,h0,m,x,v,xh,vh,ngf,ngflag,opt)
-        call mxx_en (jcen,nbod,nbig,m,xh,vh,s,en(2),am(2))
-        call mio_log (time,tstart,en,am,opt,mem,lmem)
-        tlog = time
+        call mio_log (time,tstart,en,am,opt,mem,lmem,nbod)
+        tlog = time*1.000184
       end if
 
 c
+c A.S. outputting xyz
+c      if (time.gt.toutxyz - 0.01*h0 .and. xyzoutput.eq.1) then
+c        xyzcounter = xyzcounter + 1
+c        write (tempout,'(I4.4)') xyzcounter ! converting integer to string using a 'internal file'
+c        ASfilename='xyz_outputs/swifter'//trim(tempout)//'.txt'
+c        call mco_h2b(time,jcen,nbod,nbig,temp,m,xh,vh,x,v,tmp2,iflag,itmp)
+c10      open (565,file=ASfilename,status="new",action="write",err=10)
+c        ASinput = '(f14.1,1x,I3,1x,f18.16,1x,f18.16,1x,f18.16)'
+c        do j=1,nbod
+c          write (565,ASinput) time, i, x(1,j), x(2,j), x(3,j)
+c        end do
+c        close(565)
+c        toutxyz = toutxyz + numdt*h0
+c      end if
+c
+
+c A.S. log output energy
+c      if ((time - tstart).gt.t_output) then
+c        t_output = (time - tstart)*t_log_output
+c        call mxx_en (jcen,nbod,nbig,m,xh,vh,s,en(2),am(2))
+c        ASencalc = 0.d0
+c        if (en(1).ne.0) ASencalc = abs((en(2) + en(3) - en(1)) / en(1))
+c10      open (565,file='eo.txt',status='old',access='append',err=10)
+c        ASinput = '(f14.1,1x,1p1e12.5,1x,1p1e14.7)'
+c        write (565,ASinput) time - tstart, ASencalc, en(3)
+c        close (565)
+c      end if
+c
+
+
 c------------------------------------------------------------------------------
 c
 c  CHECK  FOR  EJECTIONS  AND  DO  OTHER  PERIODIC  EFFECTS
@@ -1229,6 +1291,7 @@ c
       return
       end
 c
+c A.S. This is where the collision merging actually happens.
 c%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 c
 c      MCE_MERG.FOR    (ErikSoft   2 October 2000)
@@ -1545,6 +1608,7 @@ c
       return
       end
 c
+c A.S. This is the algorithm that checks for collisions
 c%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 c
 c    MCE_STAT.FOR    (ErikSoft   1 March 2001)
@@ -3189,6 +3253,7 @@ c------------------------------------------------------------------------------
 c
       end
 c
+c A.S. Burlish-Stoer routine
 c%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 c
 c      MDT_BS2.FOR    (ErikSoft   2 March 2001)
@@ -3374,6 +3439,7 @@ c------------------------------------------------------------------------------
 c
       end
 c
+c A.S. This is an important part
 c%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 c
 c      MDT_HY.FOR    (ErikSoft   2 March 2001)
@@ -3483,6 +3549,7 @@ c
 c Check whether any object separations were < R_CRIT whilst advancing H_K
       call mce_snif (h0,2,nbod,nbig,x0,v0,x,v,rcrit,ce,nce,ice,jce)
 c
+c A.S. Important part
 c If objects had close encounters, advance H_K using Bulirsch-Stoer instead
       if (nce.gt.0) then
         do j = 2, nbod
@@ -6224,6 +6291,7 @@ c
       return
       end
 c
+c A.S. This is where things are output on the screen
 c%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 c
 c      MIO_LOG.FOR    (ErikSoft   25 February 2001)
@@ -6237,13 +6305,13 @@ c Mercury interactively).
 c
 c------------------------------------------------------------------------------
 c
-      subroutine mio_log (time,tstart,en,am,opt,mem,lmem)
+      subroutine mio_log (time,tstart,en,am,opt,mem,lmem,nbod)
 c
       implicit none
       include 'mercury.inc'
 c
 c Input/Output
-      integer lmem(NMESS), opt(8)
+      integer lmem(NMESS), opt(8), nbod
       real*8 time, tstart, en(3), am(3)
       character*80 mem(NMESS)
 c
@@ -6257,30 +6325,40 @@ c------------------------------------------------------------------------------
 c
       if (opt(3).eq.0.or.opt(3).eq.2) then
         tstring = mem(1)
-        flog = '(1x,a,f14.1,a,2(a,1p1e12.5))'
+        flog='(1x,a,f14.1,a,2(a,1p1e12.5),3x,i5)'
       else if (opt(3).eq.1) then
-        flog = '(1x,a,i10,1x,i2,1x,f4.1,2(a,1p1e12.5))'
+        flog='(a,i9,1x,i2,f4.1,2(a,1p1e12.5),3x,i5)'
       else
         tstring = mem(2)
-        flog = '(1x,a,f14.3,a,2(a,1p1e12.5))'
+        flog='(1x,a,f14.3,a,2(a,1p1e12.5),3x,i5)'
       end if
 c
       tmp0 = 0.d0
       tmp1 = 0.d0
-      if (en(1).ne.0) tmp0 = (en(2) + en(3) - en(1)) / abs(en(1))
-      if (am(1).ne.0) tmp1 = (am(2) + am(3) - am(1)) / abs(am(1))
+      if (en(1).ne.0) tmp0 = abs((en(2) + en(3) - en(1)) / en(1))
+      if (am(1).ne.0) tmp1 = abs((am(2) + am(3) - am(1)) / am(1))
 c
       if (opt(3).eq.1) then
         call mio_jd2y (time,year,month,t1)
         write (*,flog) mem(64)(1:lmem(64)), year, month, t1,
-     %    mem(65)(1:lmem(65)), tmp0,mem(66)(1:lmem(66)), tmp1
+     %    mem(65)(1:lmem(65)), tmp0,mem(66)(1:lmem(66)), tmp1,
+     %    nbod
       else
         if (opt(3).eq.0) t1 = time
         if (opt(3).eq.2) t1 = time - tstart
         if (opt(3).eq.3) t1 = (time - tstart) / 365.25d0
         write (*,flog) mem(63)(1:lmem(63)), t1, tstring,
-     %    mem(65)(1:lmem(65)), tmp0, mem(66)(1:lmem(66)), tmp1
+     %    mem(65)(1:lmem(65)), tmp0, mem(66)(1:lmem(66)), tmp1,
+     %    nbod
       end if
+
+c A.S. Need to write the energy here to a .txt file and you should be good to go. Fortran 77 write to file.
+c10    open (565,file='eo.txt',status='unknown',access='append',err=10)
+c        ASinput = '(f14.1,1x,1p1e12.5,1x,1p1e14.7)'
+c        write (565,ASinput) time - tstart, tmp0, en(3)
+c        close (565)
+c A.S. Need to write the energy here to a .txt file and you should be good to go. Fortran 77 write to file.
+
 c
 c------------------------------------------------------------------------------
 c
